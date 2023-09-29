@@ -33,3 +33,11 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, related_name='recipe_ingredients', on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     amount = models.PositiveIntegerField()
+
+
+class Favorite(models.Model):
+    pass
+
+
+class ShoppingCart(models.Model):
+    pass
