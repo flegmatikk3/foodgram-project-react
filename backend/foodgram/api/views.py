@@ -6,10 +6,6 @@ from recipes.models import Tag, Recipe
 from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer
 
 
-def index(request):
-    return HttpResponse('index')
-
-
 class CustomUserViewSet(UserViewSet):
     pass
 
