@@ -74,6 +74,6 @@ class Follow(models.Model):
                 name='unique_subscription'
             )
         ]
-    
+
     def __str__(self):
         return _(f'{self.follower} subscribed to: {self.author}')
