@@ -105,8 +105,8 @@ class Favorite(models.Model):
 
     class Meta:
         verbose_name=_('favorite')
-        verbose_name_plural=_('favorites'),
-        constraints =(
+        verbose_name_plural=_('favorites')
+        constraints = (
             models.UniqueConstraint(
                 name='favorite_recipe',
                 fields=['user', 'recipe']
@@ -118,4 +118,18 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
-    pass
+    author = models.ForeignKey(User, verbose_name=_('author'), on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, verbose_name=_('recipe'), on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name=_('shopping cart')
+        verbose_name_plural=_('shopping cart')
+        constraints = (
+            models.UniqueConstraint(
+                name='unique_cart',
+                fields=['author', 'recipe']
+            )
+        ),
+    
+    def __str__(self):
+        return f'{self.recipe}'
