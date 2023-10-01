@@ -1,21 +1,28 @@
 from django.shortcuts import render, HttpResponse
 from djoser.views import UserViewSet
-from rest_framework.viewsets import ModelViewSet
+from rest_framework import viewsets, permissions
 
-from recipes.models import Tag, Recipe
-from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer
+from recipes.models import Tag, Recipe, Ingredient
+from api.serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer, IngredientSerializer
 
 
 class CustomUserViewSet(UserViewSet):
     pass
 
 
-class TagViewSet(ModelViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = (permissions.AllowAny,)
 
 
-class RecipeViewSet(ModelViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (permissions.AllowAny)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
