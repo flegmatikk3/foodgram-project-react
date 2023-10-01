@@ -3,8 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 from django.db import models
 
-
-User = get_user_model()
+from users.models import User
 
 
 class Tag(models.Model):
@@ -101,7 +100,21 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    pass
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name=_('recipe'))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('user'))
+
+    class Meta:
+        verbose_name=_('favorite')
+        verbose_name_plural=_('favorites'),
+        constraints =(
+            models.UniqueConstraint(
+                name='favorite_recipe',
+                fields=['user', 'recipe']
+            )
+        ),
+
+    def __str__(self):
+        return _(f"{self.recipe} in {self.user}'s favorites")
 
 
 class ShoppingCart(models.Model):
