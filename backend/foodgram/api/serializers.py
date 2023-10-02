@@ -126,10 +126,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 _('Minimum 1 ingredient')
             )
-        if len(ingredients) != len(set(ingredient['id'] for ingredient in ingredients)):
+
+        if len(ingredients) != len(
+            set(ingredient['id'] for ingredient in ingredients)
+        ):
             raise serializers.ValidationError(
                 _('Ingredients should be unique')
             )
+        
+        return ingredients
 
     
     def validate_tags(self, tags):
