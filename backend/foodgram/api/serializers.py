@@ -1,7 +1,10 @@
 from rest_framework import serializers
-
+from drf_extra_fields.fields import Base64ImageField
+from django.shortcuts import get_object_or_404
+from django.db import transaction
 from recipes.models import Tag, Recipe, RecipeIngredient, Ingredient, ShoppingCart, Favorite
 from users.models import User, Follow
+from django.utils.translation import gettext_lazy as _
 
 class UserSerializer(serializers.ModelSerializer):
     # is_subscribed = serializers.SerializerMethodField
@@ -105,24 +108,60 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientCreateSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'name', 'cooking_time', 'text', 'ingredients')
+        exclude = ('pub_date')
+    
+
+    def validate_ingredients(self, ingredients):
+        if not ingredients:
+            raise serializers.ValidationError(
+                _('Minimum 1 ingredient')
+            )
+        if len(ingredients) != len(set(ingredient['id'] for ingredient in ingredients)):
+            raise serializers.ValidationError(
+                _('Ingredients should be unique')
+            )
+
+    
+    def validate_tags(self, tags):
+        if not tags:
+            raise serializers.ValidationError(
+                _('Minimum 1 tag')
+            )
+        if len(tags) != len(set(tags)):
+            raise serializers.ValidationError(
+                _('Tags should be unique')
+            )
 
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        instance = super().create(validated_data)
+        author = self.context.get('request').user
+        tags_data = validated_data.pop('tags')
+        ingredients_data = validated_data.pop('ingredients')
 
-        for ingredient_data in ingredients:
-            RecipeIngredient(
-                recipe=instance,
-                ingredient=ingredient_data['ingredient'],
-                amount=ingredient_data['amount']
-            ).save() # вместо этого лучше использовать балк криейт
+        with transaction.atomic():
+            recipe = Recipe.objects.create(author=author, **validated_data)
+            recipe.tags.set(tags_data)
 
-        return instance
+            recipe_ingredients = [
+                RecipeIngredient(
+                    ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
+                    recipe=recipe,
+                    amount=ingredient['amount']
+                )
+                for ingredient in ingredients_data
+            ]
+            RecipeIngredient.objects.bulk_create(recipe_ingredients)
+
+        return recipe
     
     def to_representation(self, instance):
         return super().to_representation(instance)

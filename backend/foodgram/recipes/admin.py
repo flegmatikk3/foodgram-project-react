@@ -10,7 +10,12 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'id',
+        'name',
+        'color',
+        'slug',
+    )
 
 
 @admin.register(Recipe)
@@ -25,9 +30,15 @@ class IngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'user',
+        'recipe'
+    )
 
 
 @admin.register(ShoppingCart)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'author',
+        'recipe'
+    )
