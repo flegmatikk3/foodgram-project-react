@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, status, validators
 from drf_extra_fields.fields import Base64ImageField
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -7,7 +7,7 @@ from users.models import User, Follow
 from django.utils.translation import gettext_lazy as _
 
 class UserSerializer(serializers.ModelSerializer):
-    # is_subscribed = serializers.SerializerMethodField
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -17,18 +17,17 @@ class UserSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'password',
-            # 'is_subscribed'
+            'is_subscribed'
         )
         extra_kwargs = {
             'password': {'write_only': True},
-            # 'is_subscribed': {'read_only': True}
         }
     
-    # def get_is_subscribed(self, obj):
-    #    user = self.context.get('request').user
-    #    if not user.is_anonymous:
-    #        return Follow.objects.filter(user=user, author=obj).exists()
-    #    return False
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        return Follow.objects.filter(follower=request.user, author=obj.id).exists()
     
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -105,6 +104,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         if request is None or request.user.is_anonymous:
             return False
         return ShoppingCart.objects.filter(author=request.user, recipe=obj.id).exists()
+
+
+class MiniRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -196,5 +202,81 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
     def to_representation(self, instance):
-        return super().to_representation(instance)
+        serializer = RecipeSerializer(instance)
+        return serializer.data
 
+
+class FollowSerializer(serializers.ModelSerializer):
+    email = serializers.ReadOnlyField(source='author.email')
+    id = serializers.ReadOnlyField(source='author.id')
+    username = serializers.ReadOnlyField(source='author.username')
+    first_name = serializers.ReadOnlyField(source='author.first_name')
+    last_name = serializers.ReadOnlyField(source='author.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Follow
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+
+    def get_is_subscribed(self, obj):
+        user = self.context.get('request').user
+        if not user.is_anonymous:
+            return Follow.objects.filter(
+                user=obj.user,
+                author=obj.author).exists()
+        return False
+
+    def get_recipes_count(self, obj):
+        return Recipe.objects.filter(author=obj.author).count()
+
+    def get_recipes(self, obj):
+        request = self.context.get('request')
+        limit = request.GET.get('recipes_limit')
+        recipes = Recipe.objects.filter(author=obj.author)
+        if limit and limit.isdigit() and int(limit) > 0:
+            recipes = recipes[:int(limit)]
+        return MiniRecipeSerializer(recipes, many=True).data
+    
+    def validate(self, data):
+        author = self.context.get('author')
+        user = self.context.get('request').user
+        if Follow.objects.filter(author=author, user=user).exists():
+            raise serializers.ValidationError(
+                detail=_('You are already following this user!'),
+                code=status.HTTP_400_BAD_REQUEST)
+        if user == author:
+            raise serializers.ValidationError(
+                detail=_('You can not subscribe to yourself!'),
+                code=status.HTTP_400_BAD_REQUEST)
+        return data
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Favorite
+        fields = '__all__'
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=Favorite.objects.all(),
+                fields=('user', 'recipe'),
+                message=_('You have already added this recipe to your favorites')
+            )
+        ]
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ShoppingCart
+        fields = '__all__'
+        validators = [
+            validators.UniqueTogetherValidator(
+                queryset=ShoppingCart.objects.all(),
+                fields=('user', 'recipe'),
+                message=_('You have already added this recipe to your shopping cart')
+            )
+        ]
