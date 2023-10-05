@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as gtl
 
 from recipes.models import Tag, Recipe, Ingredient, ShoppingCart, Favorite
 from .serializers import TagSerializer, RecipeSerializer, RecipeCreateSerializer, IngredientSerializer, UserSerializer, FollowSerializer
@@ -42,19 +42,19 @@ class CustomUserViewSet(UserViewSet):
         if request.method == 'POST':
             serializer = FollowSerializer(data=request.data, context={'request': request, 'author': author})
             if serializer.is_valid(raise_exception=True):
-                serializer.save(author=author, user=user)
-                message = _('Subscription successfully created')
+                serializer.save(follower=user, author=author)
+                message = gtl('Subscription successfully created')
                 status_code = status.HTTP_201_CREATED
             else:
-                message = _('Object not found')
+                message = gtl('Object not found')
                 status_code = status.HTTP_404_NOT_FOUND
         else:
-            if Follow.objects.filter(author=author, user=user).exists():
-                Follow.objects.get(author=author, user=user).delete()
-                message = _('Successful unsubscription')
+            if Follow.objects.filter(follower=user, author=author).exists():
+                Follow.objects.get(follower=user, author=author).delete()
+                message = gtl('Successful unsubscription')
                 status_code = status.HTTP_204_NO_CONTENT
             else:
-                message = _('Object not found')
+                message = gtl('Object not found')
                 status_code = status.HTTP_404_NOT_FOUND
     
         return Response({'message': message}, status=status_code)
@@ -75,7 +75,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (permissions.AllowAny)
+    permission_classes = (permissions.AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -97,18 +97,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             created = ShoppingCart.objects.get_or_create(author=user, recipe=recipe)
             if created:
-                return Response({'message': _('Recipe added to shopping cart.')},
+                return Response({'message': gtl('Recipe added to shopping cart.')},
                                 status=status.HTTP_201_CREATED)
             else:
-                return Response({'errors': _('Recipe is already in shopping cart.')},
+                return Response({'errors': gtl('Recipe is already in shopping cart.')},
                                 status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             deleted, _ = ShoppingCart.objects.filter(author=user, recipe=recipe).delete()
             if deleted:
-                return Response({'message': _('Recipe deleted from shopping cart.')},
+                return Response({'message': gtl('Recipe deleted from shopping cart.')},
                                 status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({'errors': _('Recipe not found in shopping cart.')},
+                return Response({'errors': gtl('Recipe not found in shopping cart.')},
                                 status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
@@ -117,18 +117,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         if request.method == 'POST':
-            created = Favorite.objects.get_or_create(author=user, recipe=recipe)
+            created = Favorite.objects.get_or_create(user=user, recipe=recipe)
             if created:
-                return Response({'message': _('Recipe added to favorite.')},
+                return Response({'message': gtl('Recipe added to favorite.')},
                                 status=status.HTTP_201_CREATED)
             else:
-                return Response({'errors': _('Recipe already in favorite.')},
+                return Response({'errors': gtl('Recipe already in favorite.')},
                                 status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
-            deleted, _ = Favorite.objects.filter(author=user, recipe=recipe).delete()
+            deleted, _ = Favorite.objects.filter(user=user, recipe=recipe).delete()
             if deleted:
-                return Response({'message': _('Recipe deleted from favorite.')},
+                return Response({'message': gtl('Recipe deleted from favorite.')},
                                 status=status.HTTP_204_NO_CONTENT)
             else:
-                return Response({'errors': _('Recipe not found in favorites.')},
+                return Response({'errors': gtl('Recipe not found in favorites.')},
                                 status=status.HTTP_404_NOT_FOUND)

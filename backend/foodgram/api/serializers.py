@@ -62,10 +62,7 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 
 class RecipeIngredientCreateSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(
-        source='ingredient',
-        queryset=Ingredient.objects.all()
-    )
+    id = serializers.IntegerField(write_only=True)
     amount = serializers.IntegerField()
 
     class Meta:
@@ -116,15 +113,13 @@ class MiniRecipeSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientCreateSerializer(many=True)
-    tags = serializers.PrimaryKeyRelatedField(
-        many=True,
-        queryset=Tag.objects.all()
-    )
     image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
 
     class Meta:
         model = Recipe
-        exclude = ('pub_date')
+        fields = ('ingredients', 'tags', 'image',
+                  'name', 'text', 'cooking_time', 'author')
     
 
     def validate_ingredients(self, ingredients):
@@ -133,12 +128,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 _('Minimum 1 ingredient')
             )
 
-        if len(ingredients) != len(
-            set(ingredient['id'] for ingredient in ingredients)
-        ):
-            raise serializers.ValidationError(
-                _('Ingredients should be unique')
-            )
+        ingredients_list = []
+        for item in ingredients:
+            ingredient = get_object_or_404(Ingredient, id=item['id'])
+            if ingredient in ingredients_list:
+                raise serializers.ValidationError(
+                    _('Ingredients should be unique')
+                )
+            ingredients_list.append(ingredient)
         
         return ingredients
 
@@ -152,6 +149,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 _('Tags should be unique')
             )
+        return tags
 
     def create(self, validated_data):
         author = self.context.get('request').user
