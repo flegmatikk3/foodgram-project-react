@@ -26,6 +26,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = _('Ingredient')
         verbose_name_plural = _('Ingredients')
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -65,6 +66,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = _('Recipe')
         verbose_name_plural = _('Recipes')
+        ordering = ('-id',)
     
     def __str__(self):
         return self.name
@@ -94,14 +96,15 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = _('ingredient in recipe')
         verbose_name_plural = _('ingredients in recipe')
+        ordering = ('-id',)
 
     def __str__(self):
         return f'{self.ingredient} {self.amount}'
 
 
 class Favorite(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name=_('recipe'))
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('user'))
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name=_('recipe'), related_name='favorite_recipes',)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('user'), related_name='favorite_recipes',)
 
     class Meta:
         verbose_name=_('favorite')
@@ -118,8 +121,8 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
-    author = models.ForeignKey(User, verbose_name=_('author'), on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, verbose_name=_('recipe'), on_delete=models.CASCADE)
+    author = models.ForeignKey(User, verbose_name=_('author'), on_delete=models.CASCADE, related_name='shopping_cart')
+    recipe = models.ForeignKey(Recipe, verbose_name=_('recipe'), on_delete=models.CASCADE, related_name='shopping_cart')
 
     class Meta:
         verbose_name=_('shopping cart')

@@ -75,6 +75,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
+    image = Base64ImageField()
     ingredients = RecipeIngredientSerializer(
         many=True, read_only=True,
         source='recipe_ingredients'
@@ -223,7 +224,7 @@ class FollowSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if not user.is_anonymous:
             return Follow.objects.filter(
-                user=obj.user,
+                follower=obj.follower,
                 author=obj.author).exists()
         return False
 
@@ -241,7 +242,7 @@ class FollowSerializer(serializers.ModelSerializer):
     def validate(self, data):
         author = self.context.get('author')
         user = self.context.get('request').user
-        if Follow.objects.filter(author=author, user=user).exists():
+        if Follow.objects.filter(author=author, follower=user).exists():
             raise serializers.ValidationError(
                 detail=_('You are already following this user!'),
                 code=status.HTTP_400_BAD_REQUEST)
