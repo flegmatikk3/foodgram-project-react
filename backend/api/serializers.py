@@ -38,6 +38,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class TagSerializer(serializers.ModelSerializer):
+    pagination_class = None
 
     class Meta:
         model = Tag

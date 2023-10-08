@@ -1,32 +1,25 @@
 version: '3.3'
-volumes:
-  foodgram_static:
-  foodgram_media:
-  foodgram_db:
-  foodgram_frontend:
-
 services:
+
   db:
-    image: postgres:13
-    env_file: ./.env
+    image: postgres:13.0-alpine
     volumes:
       - foodgram_db:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
 
   backend:
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
-    env_file: ./.env
+    image: flegmatik/foodgram_backend:latest
     volumes:
-      - foodgram_static:/app/static_backend
-      - foodgram_media:/app/media
+      - foodgram_static:/app/static_backend/
+      - foodgram_media:/app/media/
     depends_on:
       - db
+    env_file:
+      - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: flegmatik/foodgram_frontend:latest
     volumes:
       - ./frontend/:/app/result_build/
 
@@ -42,3 +35,9 @@ services:
       - foodgram_media:/var/html/media/
     depends_on:
       - backend
+    restart: always
+
+volumes:
+  foodgram_static:
+  foodgram_media:
+  foodgram_db:
