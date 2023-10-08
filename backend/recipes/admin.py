@@ -21,7 +21,7 @@ class TagAdmin(admin.ModelAdmin):
 class RecipeAdmin(admin.ModelAdmin):
     inlines = (RecipeIngredientInline, )
     list_display = (
-        'id', 'get_author', 'name', 'text',
+        'id', 'name', 'text',
         'cooking_time', 'get_tags', 'get_ingredients', 'get_favorite_count')
     search_fields = (
         'name', 'cooking_time', 'tags__name',

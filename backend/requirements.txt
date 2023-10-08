@@ -4,3 +4,6 @@ djoser
 Pillow
 drf-extra-fields
 django-filter
+psycopg2-binary==2.9.3
+webcolors==1.11.1
+PyYAML==6.0
