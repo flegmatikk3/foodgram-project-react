@@ -6,7 +6,7 @@ from users.models import User
 
 
 class Tag(models.Model):
-    name = models.CharField(_('title') ,max_length=200, unique=True)
+    name = models.CharField(_('title'), max_length=200, unique=True)
     color = models.CharField(_('color'), max_length=7, unique=True)
     slug = models.SlugField(_('slug of tag'), max_length=200, unique=True)
 
@@ -19,7 +19,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(_('title') ,max_length=200)
+    name = models.CharField(_('title'), max_length=200)
     measurement_unit = models.CharField(_('measurement unit'), max_length=200)
 
     class Meta:
@@ -85,7 +85,7 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(
         _('amount'),
-        validators = [
+        validators=[
             MinValueValidator(
                 1, message=_('minimal amount of ingredients 1')
             )
