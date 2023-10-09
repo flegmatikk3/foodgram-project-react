@@ -1,17 +1,11 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
-
-from rest_framework import serializers, status, validators
 from drf_extra_fields.fields import Base64ImageField
-
-from recipes.models import (
-    Tag, Recipe,
-    RecipeIngredient, Ingredient,
-    ShoppingCart, Favorite
-)
-
-from users.models import User, Follow
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from rest_framework import serializers, status, validators
+from users.models import Follow, User
 
 
 class UserSerializer(serializers.ModelSerializer):

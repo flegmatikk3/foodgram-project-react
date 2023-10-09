@@ -1,7 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
 from users.models import User
 
 
@@ -116,8 +115,8 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        verbose_name= _('favorite')
-        verbose_name_plural= _('favorites')
+        verbose_name = _('favorite')
+        verbose_name_plural = _('favorites')
         constraints = (
             models.UniqueConstraint(
                 name='favorite_recipe',
