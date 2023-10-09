@@ -4,11 +4,11 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-ev3g&(7gf93_jok5qyrp(d2#n-6@u!p_7^fw5l=@3^)%x%)h^m'
+SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
-DEBUG = True
+DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1',]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '158.160.78.165', 'run-kittygram.ru']
 
 AUTH_USER_MODEL = 'users.User'
 
