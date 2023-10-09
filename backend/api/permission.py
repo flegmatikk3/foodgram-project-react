@@ -8,7 +8,7 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or object.author == request.user
         )
-    
+
     def has_permission(self, request, view):
         return (
             request.method in permissions.SAFE_METHODS

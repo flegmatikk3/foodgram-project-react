@@ -19,7 +19,7 @@ class User(AbstractUser):
         unique=True,
         help_text=_('Required. 150 characters or fewer.'
                     ' Letters, digits and @/./+/-/_ only.'),
-        validators = [
+        validators=[
             UsernameValidator(
                 regex=r'^[\w.@+-]+$',
             ),
@@ -57,7 +57,7 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-    
+
     follower = models.ForeignKey(
         User,
         related_name='follower',

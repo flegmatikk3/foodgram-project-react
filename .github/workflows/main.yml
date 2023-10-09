@@ -56,7 +56,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           source: "infra/docker-compose.yaml"
-          target: "."
+          target: "foodgram/infra/"
           strip_components: 1
 
   copy_nginx_conf:
@@ -72,7 +72,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.PASSPHRASE }}
           source: "infra/nginx.conf"
-          target: "nginx"
+          target: "foodgram/infra/"
           strip_components: 1
 
   deploy:
@@ -88,6 +88,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
 
           script: |
+            cd foodram/infra/
             docker-compose stop
             docker-compose rm backend
             docker pull flegmatik/foodgram_backend:latest

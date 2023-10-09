@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -14,7 +13,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = _('Tag')
         verbose_name_plural = _('Tags')
-    
+
     def __str__(self):
         return self.name
 
@@ -67,7 +66,7 @@ class Recipe(models.Model):
         verbose_name = _('Recipe')
         verbose_name_plural = _('Recipes')
         ordering = ('-id',)
-    
+
     def __str__(self):
         return self.name
 
@@ -103,8 +102,18 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, verbose_name=_('recipe'), related_name='favorite_recipes',)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name=_('user'), related_name='favorite_recipes',)
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        verbose_name=_('recipe'),
+        related_name='favorite_recipes',
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name=_('user'),
+        related_name='favorite_recipes',
+    )
 
     class Meta:
         verbose_name=_('favorite')
@@ -121,18 +130,28 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
-    author = models.ForeignKey(User, verbose_name=_('author'), on_delete=models.CASCADE, related_name='shopping_cart')
-    recipe = models.ForeignKey(Recipe, verbose_name=_('recipe'), on_delete=models.CASCADE, related_name='shopping_cart')
+    author = models.ForeignKey(
+        User,
+        verbose_name=_('author'),
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        verbose_name=_('recipe'),
+        on_delete=models.CASCADE,
+        related_name='shopping_cart'
+    )
 
     class Meta:
-        verbose_name=_('shopping cart')
-        verbose_name_plural=_('shopping cart')
+        verbose_name = _('shopping cart')
+        verbose_name_plural = _('shopping cart')
         constraints = (
             models.UniqueConstraint(
                 name='unique_cart',
                 fields=['author', 'recipe']
             )
         ),
-    
+
     def __str__(self):
         return f'{self.recipe}'

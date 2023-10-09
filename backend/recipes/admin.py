@@ -35,7 +35,7 @@ class RecipeAdmin(admin.ModelAdmin):
         return ', '.join(
             [ingredient.name for ingredient in obj.ingredients.all()]
         )
-    
+
     def get_favorite_count(self, obj):
         return obj.favorite_recipes.count()
 
