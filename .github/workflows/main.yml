@@ -88,11 +88,11 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
 
           script: |
-            cd foodram/infra/
-            docker-compose stop
-            docker-compose rm backend
-            docker pull flegmatik/foodgram_backend:latest
-            docker-compose up -d
+            cd foodgram/infra/
+            sudo docker-compose stop
+            sudo docker-compose rm backend
+            sudo docker compose -f docker-compose.yml pull
+            sudo docker-compose up -d
             sudo docker compose -f docker-compose.yml exec backend python manage.py migrate
             sudo docker compose -f docker-compose.yml exec backend python manage.py collectstatic
             sudo docker compose -f docker-compose.yml exec backend cp -r /var/html/static_backend/. /static_backend/static/
