@@ -7,7 +7,7 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
 DEBUG = os.getenv('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '158.160.78.165', 'run-kittygram.ru']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '158.160.78.165', 'foodgram-fuck-your-mum.ru']
 
 AUTH_USER_MODEL = 'users.User'
 
