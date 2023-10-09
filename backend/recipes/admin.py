@@ -1,4 +1,6 @@
 from django.contrib import admin
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 
@@ -40,12 +42,15 @@ class RecipeAdmin(admin.ModelAdmin):
         return obj.favorite_recipes.count()
 
 
+class IngredientResource(resources.ModelResource):
+    class Meta:
+        model = Ingredient
+
+
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
-    list_display = (
-        'id', 'name',
-        'measurement_unit'
-    )
+class IngredientAdmin(ImportExportModelAdmin):
+    resource_class = IngredientResource
+    list_display = ('id', 'name', 'measurement_unit')
     search_fields = ('name',)
     list_filter = ('name',)
 
