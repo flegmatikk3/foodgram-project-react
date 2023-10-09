@@ -1,14 +1,16 @@
-from rest_framework import serializers, status, validators
-from drf_extra_fields.fields import Base64ImageField
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
-from django.db import transaction
+from rest_framework import serializers, status, validators
+from drf_extra_fields.fields import Base64ImageField
+
 from recipes.models import (
     Tag, Recipe,
     RecipeIngredient, Ingredient,
     ShoppingCart, Favorite
 )
+
 from users.models import User, Follow
 
 
@@ -146,7 +148,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time', 'author')
 
-
     def validate_ingredients(self, ingredients):
         if not ingredients:
             raise serializers.ValidationError(
@@ -163,9 +164,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                     _('Ingredients should be unique')
                 )
             ingredients_list.append(ingredient)
-        
-        return ingredients
 
+        return ingredients
 
     def validate_tags(self, tags):
         if not tags:
@@ -223,8 +223,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
                     recipe_ingredient, created = (
                         RecipeIngredient.objects.update_or_create(
-                            recipe = instance,
-                            ingredient = ingredient,
+                            recipe=instance,
+                            ingredient=ingredient,
                             defaults={'amount': amount}
                         )
                     )

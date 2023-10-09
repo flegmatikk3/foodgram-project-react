@@ -1,27 +1,29 @@
-from django.shortcuts import render, HttpResponse
-from djoser.views import UserViewSet
-from rest_framework import viewsets, permissions, status, filters
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from datetime import date
+
+from django.db.models import Sum
+from django.shortcuts import HttpResponse
+from django.utils.translation import gettext_lazy as gtl
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from django.utils.translation import gettext_lazy as gtl
-from datetime import date
-from django.db.models import Sum
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from djoser.views import UserViewSet
 
 from recipes.models import (
     Tag, Recipe, Ingredient,
     ShoppingCart, Favorite, RecipeIngredient
 )
+from .filters import IngredientFilter, RecipeFilter
+from .pagination import CustomPagination
+from .permission import IsAuthorOrReadOnly, AuthenticatedOrReadOnly
 from .serializers import (
     TagSerializer, RecipeSerializer,
     RecipeCreateSerializer, IngredientSerializer,
     UserSerializer, FollowSerializer
 )
-from .permission import IsAuthorOrReadOnly, AuthenticatedOrReadOnly
-from .pagination import CustomPagination
-from .filters import IngredientFilter, RecipeFilter
 from users.models import User, Follow
 
 
@@ -43,7 +45,7 @@ class CustomUserViewSet(UserViewSet):
                 context={'request': request}
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
         elif request.method == 'PATCH':
             serializer = UserSerializer(
                 request.user,
@@ -129,13 +131,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeCreateSerializer
         return RecipeSerializer
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    @action(
+            detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated]
+    )
     def shopping_cart(self, request, **kwargs):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('pk'))
         user = self.request.user
 
         if request.method == 'POST':
-            created = ShoppingCart.objects.get_or_create(author=user, recipe=recipe)
+            created = ShoppingCart.objects.get_or_create(
+                author=user, recipe=recipe
+            )
             if created:
                 return Response(
                     {'message': gtl('Recipe added to shopping cart.')},
@@ -147,7 +155,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         elif request.method == 'DELETE':
-            deleted, _ = ShoppingCart.objects.filter(author=user, recipe=recipe).delete()
+            deleted, _ = ShoppingCart.objects.filter(
+                author=user, recipe=recipe
+            ).delete()
             if deleted:
                 return Response(
                     {'message': gtl('Recipe deleted from shopping cart.')},
@@ -159,7 +169,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    @action(
+            detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated]
+    )
     def favorite(self, request, *args, **kwargs):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('pk'))
         user = self.request.user
@@ -177,7 +191,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
         elif request.method == 'DELETE':
-            deleted, _ = Favorite.objects.filter(user=user, recipe=recipe).delete()
+            deleted, _ = Favorite.objects.filter(
+                user=user, recipe=recipe
+            ).delete()
             if deleted:
                 return Response(
                     {'message': gtl('Recipe deleted from favorite.')},
@@ -194,8 +210,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         author = User.objects.get(id=self.request.user.pk)
         if author.shopping_cart.exists():
             ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__author=author
-            ).values(
+            recipe__shopping_cart__author=author).values(
                 'ingredient__name',
                 'ingredient__measurement_unit'
             ).annotate(
