@@ -157,6 +157,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     _('Ingredients should be unique')
                 )
+            if int(item['amount']) <= 0:
+                raise serializers.ValidationError(
+                    _('Amount should be more than 0!')
+                )
             ingredients_list.append(ingredient)
 
         return ingredients

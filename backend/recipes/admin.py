@@ -41,6 +41,13 @@ class RecipeAdmin(admin.ModelAdmin):
     def get_favorite_count(self, obj):
         return obj.favorite_recipes.count()
 
+    def save_model(self, request, obj, form, change):
+        if obj.ingredients.count() == 0:
+            raise admin.ValidationError(
+                "Рецепт должен содержать хотя бы один ингредиент!"
+            )
+        super().save_model(request, obj, form, change)
+
 
 class IngredientResource(resources.ModelResource):
     class Meta:
