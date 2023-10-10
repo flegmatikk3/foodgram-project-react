@@ -204,37 +204,30 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags', None)
         ingredients = validated_data.pop('ingredients', None)
+        instance = super().update(instance, validated_data)
 
         with transaction.atomic():
             if tags is not None:
+                instance.tags.clear()
                 instance.tags.set(tags)
 
             if ingredients is not None:
-                new_recipe_ingredients = []
+                instance.ingredients.clear()
 
-                for ingredient in ingredients:
-                    amount = ingredient['amount']
-                    ingredient_id = ingredient['id']
-                    ingredient = get_object_or_404(
-                        Ingredient, pk=ingredient_id
+                recipe_ingredients = [
+                    RecipeIngredient(
+                        ingredient=get_object_or_404(
+                            Ingredient, pk=ingredient['id']
+                        ),
+                        recipe=instance,
+                        amount=ingredient['amount']
                     )
+                    for ingredient in ingredients
+                ]
+            RecipeIngredient.objects.bulk_create(recipe_ingredients)
+            instance.save()
 
-                    recipe_ingredient, created = (
-                        RecipeIngredient.objects.update_or_create(
-                            recipe=instance,
-                            ingredient=ingredient,
-                            defaults={'amount': amount}
-                        )
-                    )
-                    new_recipe_ingredients.append(recipe_ingredient.pk)
-
-                RecipeIngredient.objects.filter(
-                    recipe=instance
-                ).exclude(
-                    pk__in=new_recipe_ingredients
-                ).delete()
-
-        return super().update(instance, validated_data)
+        return instance
 
     def to_representation(self, instance):
         serializer = RecipeSerializer(instance)
