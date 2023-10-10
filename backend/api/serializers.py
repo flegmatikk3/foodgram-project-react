@@ -176,57 +176,37 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         return tags
 
+    @transaction.atomic
+    def create_ingredients_amounts(self, ingredients, recipe):
+        RecipeIngredient.objects.bulk_create(
+            [RecipeIngredient(
+                ingredient=Ingredient.objects.get(id=ingredient['id']),
+                recipe=recipe,
+                amount=ingredient['amount']
+            ) for ingredient in ingredients]
+        )
+
+    @transaction.atomic
     def create(self, validated_data):
-        author = self.context.get('request').user
-        tags_data = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-
-        with transaction.atomic():
-            recipe = Recipe.objects.create(
-                author=author, **validated_data
-            )
-            recipe.tags.set(tags_data)
-
-            recipe_ingredients = [
-                RecipeIngredient(
-                    ingredient=get_object_or_404(
-                        Ingredient, pk=ingredient['id']
-                    ),
-                    recipe=recipe,
-                    amount=ingredient['amount']
-                )
-                for ingredient in ingredients_data
-            ]
-            RecipeIngredient.objects.bulk_create(recipe_ingredients)
-
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        self.create_ingredients_amounts(recipe=recipe,
+                                        ingredients=ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        tags = validated_data.pop('tags', None)
-        ingredients = validated_data.pop('ingredients', None)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
         instance = super().update(instance, validated_data)
-
-        with transaction.atomic():
-            if tags is not None:
-                instance.tags.clear()
-                instance.tags.set(tags)
-
-            if ingredients is not None:
-                instance.ingredients.clear()
-
-                recipe_ingredients = [
-                    RecipeIngredient(
-                        ingredient=get_object_or_404(
-                            Ingredient, pk=ingredient['id']
-                        ),
-                        recipe=instance,
-                        amount=ingredient['amount']
-                    )
-                    for ingredient in ingredients
-                ]
-            RecipeIngredient.objects.bulk_create(recipe_ingredients)
-            instance.save()
-
+        instance.tags.clear()
+        instance.tags.set(tags)
+        instance.ingredients.clear()
+        self.create_ingredients_amounts(recipe=instance,
+                                        ingredients=ingredients)
+        instance.save()
         return instance
 
     def to_representation(self, instance):
