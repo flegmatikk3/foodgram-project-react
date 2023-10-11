@@ -47,6 +47,7 @@ class RecipeAdmin(admin.ModelAdmin):
                 "Рецепт должен содержать хотя бы один ингредиент!"
             )
         super().save_model(request, obj, form, change)
+        obj.save()
 
 
 class IngredientResource(resources.ModelResource):

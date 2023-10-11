@@ -3,11 +3,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User
 
+from ..constraints import COL, LEN
+
 
 class Tag(models.Model):
-    name = models.CharField(_('title'), max_length=200, unique=True)
-    color = models.CharField(_('color'), max_length=7, unique=True)
-    slug = models.SlugField(_('slug of tag'), max_length=200, unique=True)
+    name = models.CharField(_('title'), max_length=LEN, unique=True)
+    color = models.CharField(_('color'), max_length=COL, unique=True)
+    slug = models.SlugField(_('slug of tag'), max_length=LEN, unique=True)
 
     class Meta:
         verbose_name = _('Tag')
@@ -18,8 +20,8 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(_('title'), max_length=200)
-    measurement_unit = models.CharField(_('measurement unit'), max_length=200)
+    name = models.CharField(_('title'), max_length=LEN)
+    measurement_unit = models.CharField(_('measurement unit'), max_length=LEN)
 
     class Meta:
         verbose_name = _('Ingredient')
@@ -32,7 +34,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     tags = models.ManyToManyField(Tag, verbose_name=_('tags'))
-    name = models.CharField(_('title'), max_length=200)
+    name = models.CharField(_('title'), max_length=LEN)
 
     cooking_time = models.PositiveIntegerField(
         _('cookings time in minutes'),

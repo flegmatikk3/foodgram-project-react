@@ -3,19 +3,20 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from ..constraints import MAIL, USR
 from .validators import UsernameValidator
 
 
 class User(AbstractUser):
     email = models.EmailField(
         _('email'),
-        max_length=254,
+        max_length=MAIL,
         unique=True
     )
 
     username = models.CharField(
         _('username'),
-        max_length=150,
+        max_length=USR,
         unique=True,
         help_text=_('Required. 150 characters or fewer.'
                     ' Letters, digits and @/./+/-/_ only.'),
@@ -34,15 +35,15 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         _('name'),
-        max_length=150
+        max_length=USR
     )
     last_name = models.CharField(
         _('last name'),
-        max_length=150
+        max_length=USR
     )
     password = models.CharField(
         _('password'),
-        max_length=150
+        max_length=USR
     )
 
     USERNAME_FIELD = 'email'
@@ -51,6 +52,7 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+        ordering = ('id',)
 
     def __str__(self):
         return self.email
@@ -75,6 +77,7 @@ class Follow(models.Model):
     class Meta:
         verbose_name = _('subscription')
         verbose_name_plural = _('subscriptions')
+        ordering = ('id',)
         constraints = [
             models.UniqueConstraint(
                 fields=['follower', 'author'],
@@ -83,4 +86,4 @@ class Follow(models.Model):
         ]
 
     def __str__(self):
-        return _(f'{self.follower} subscribed to: {self.author}')
+        return str(_(f'{self.follower} subscribed to: {self.author}'))
