@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from users.models import User
 
-from ..constraints import COL, LEN
+from .constraints import COL, LEN
 
 
 class Tag(models.Model):
